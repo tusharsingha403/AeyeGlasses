@@ -68,14 +68,17 @@ source myenv/bin/activate    # Mac/Linux
 
 **3. Install dependencies**
 ```bash
-pip install fastapi uvicorn mediapipe opencv-python Pillow protobuf==3.20.3
+pip install fastapi uvicorn mediapipe opencv-python python-dotenv requests numpy
 ```
 
 **4. Set up your environment variables**
 
 Create a `.env` file in the root directory:
 ```
-API_KEY=your_openwebninja_api_key_here
+db_path=Database path
+x-api-key=your_openwebninja_api_key_here
+git_token=Github api key
+repo=path of a helper repositories
 ```
 
 **5. Run the server**

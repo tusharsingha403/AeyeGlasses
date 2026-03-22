@@ -1,0 +1,46 @@
+#  Virtual Environment
+myenv/
+venv/
+env/
+
+#  Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+#  Environment variables
+.env
+
+#  VS Code
+.vscode/
+
+#  Jupyter Notebook
+.ipynb_checkpoints/
+
+#  Logs
+*.log
+
+#  OS files
+.DS_Store
+Thumbs.db
+
+#  Build / dist
+build/
+dist/
+*.egg-info/
+
+#  Media / temp files
+*.mp4
+*.avi
+*.png
+*.jpg
+
+#  AI / ML models (important for you)
+models/
+weights/
+*.onnx
+*.pt
+
+#  Database
+*.sqlite3

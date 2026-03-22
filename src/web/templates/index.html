@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AeyeGlasses</title>
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #050508;
+    --surface: #0d0d14;
+    --border: rgba(255,255,255,0.07);
+    --accent: #00f0ff;
+    --accent2: #bf5fff;
+    --accent3: #ff3d6e;
+    --text: #e8e8f0;
+    --muted: #5a5a72;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+}
+
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-display);
+    overflow: hidden;
+}
+
+/* ── NOISE GRAIN OVERLAY ── */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.4;
+}
+
+/* ── AMBIENT GLOWS ── */
+.glow-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+}
+.glow-orb.one {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,240,255,0.12), transparent 70%);
+    top: -200px; left: -100px;
+    animation: drift1 12s ease-in-out infinite alternate;
+}
+.glow-orb.two {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(191,95,255,0.1), transparent 70%);
+    bottom: -150px; right: -100px;
+    animation: drift2 15s ease-in-out infinite alternate;
+}
+.glow-orb.three {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(255,61,110,0.08), transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: drift3 10s ease-in-out infinite alternate;
+}
+
+@keyframes drift1 { from { transform: translate(0,0); } to { transform: translate(60px, 40px); } }
+@keyframes drift2 { from { transform: translate(0,0); } to { transform: translate(-50px, -30px); } }
+@keyframes drift3 { from { transform: translate(-50%,-50%) scale(1); } to { transform: translate(-50%,-50%) scale(1.3); } }
+
+/* ── GRID BACKGROUND ── */
+.grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+}
+
+/* ── LAYOUT ── */
+.wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    padding: 40px;
+}
+
+/* ── TOP BADGE ── */
+.badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(0,240,255,0.25);
+    background: rgba(0,240,255,0.05);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ── LOGO / TITLE ── */
+.logo-wrap {
+    text-align: center;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.4s forwards;
+}
+
+.logo-eyecon {
+    width: 75px;
+    height: 44px;
+    margin: 0 auto 20px;
+    position: relative;
+    
+}
+
+.logo-eyecon svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 12px rgba(0,240,255,0.6));
+}
+
+h1 {
+    font-family: var(--font-display);
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #ffffff 0%, rgba(0,240,255,0.9) 50%, rgba(191,95,255,0.8) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    padding-bottom: 12px;
+    margin-bottom: -12px;
+    padding-right: 16px;
+}
+
+h1 span {
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* ── TAGLINE ── */
+.tagline {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.6s forwards;
+    text-align: center;
+    line-height: 1.7;
+}
+
+.tagline em {
+    color: var(--text);
+    font-style: normal;
+}
+
+/* ── STATS ROW ── */
+.stats {
+    display: flex;
+    gap: 1px;
+    margin-bottom: 52px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.8s forwards;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--border);
+}
+
+.stat {
+    background: var(--surface);
+    padding: 16px 28px;
+    text-align: center;
+    flex: 1;
+    min-width: 110px;
+}
+
+.stat-val {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+/* ── CTA BUTTON ── */
+.cta-wrap {
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1s forwards;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.btn-start {
+    position: relative;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    outline: none;
+    display: block;
+}
+
+.btn-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 52px;
+    background: linear-gradient(135deg, rgba(0,240,255,0.15), rgba(191,95,255,0.15));
+    border: 1px solid rgba(0,240,255,0.4);
+    border-radius: 100px;
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: white;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn-inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,240,255,0.25), rgba(191,95,255,0.25));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.btn-start:hover .btn-inner::before { opacity: 1; }
+.btn-start:hover .btn-inner {
+    border-color: rgba(0,240,255,0.8);
+    box-shadow: 0 0 40px rgba(0,240,255,0.2), 0 0 80px rgba(191,95,255,0.1);
+    transform: translateY(-2px);
+}
+
+.btn-start:active .btn-inner { transform: translateY(0); }
+
+.btn-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 12px var(--accent);
+    transition: transform 0.3s ease;
+}
+.btn-start:hover .btn-icon { transform: scale(1.15); }
+
+.btn-icon svg { width: 10px; height: 10px; fill: #000; }
+
+.btn-hint {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+}
+
+/* ── FOOTER CREDITS ── */
+.credits {
+    position: fixed;
+    bottom: 28px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1.2s forwards;
+}
+
+.credit-item {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.credit-item::before {
+    content: '';
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--muted);
+}
+
+.credit-item:first-child::before { display: none; }
+
+.credit-item strong {
+    color: rgba(255,255,255,0.4);
+    font-weight: 400;
+}
+
+/* ── SCAN LINE EFFECT ON HOVER ── */
+.btn-start:hover .btn-inner::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0; right: 0;
+    height: 60%;
+    background: linear-gradient(transparent, rgba(255,255,255,0.06), transparent);
+    animation: scan 0.6s ease forwards;
+}
+
+@keyframes scan {
+    to { top: 100%; }
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── CORNER DECORATIONS ── */
+.corner {
+    position: fixed;
+    width: 60px; height: 60px;
+    opacity: 0.2;
+}
+.corner.tl { top: 24px; left: 24px; border-top: 1px solid var(--accent); border-left: 1px solid var(--accent); }
+.corner.tr { top: 24px; right: 24px; border-top: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+.corner.bl { bottom: 24px; left: 24px; border-bottom: 1px solid var(--accent); border-left: 1px solid var(--accent); }
+.corner.br { bottom: 24px; right: 24px; border-bottom: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+
+</style>
+</head>
+
+<body>
+
+<!-- Ambient -->
+<div class="glow-orb one"></div>
+<div class="glow-orb two"></div>
+<div class="glow-orb three"></div>
+<div class="grid-bg"></div>
+
+<!-- Corner deco -->
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div class="wrapper">
+
+    <!-- Badge -->
+    <div class="badge">AI Vision System · v1.0</div>
+
+    <!-- Logo -->
+    <div class="logo-wrap">
+        <div class="logo-eyecon">
+            <svg viewBox="0 0 72 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="36" cy="18" rx="34" ry="16" stroke="url(#eg)" stroke-width="1.5"/>
+                <circle cx="36" cy="18" r="8" stroke="url(#eg)" stroke-width="1.5"/>
+                <circle cx="36" cy="18" r="3" fill="url(#eg)"/>
+                <line x1="2" y1="18" x2="12" y2="18" stroke="url(#eg)" stroke-width="1.5"/>
+                <line x1="60" y1="18" x2="70" y2="18" stroke="url(#eg)" stroke-width="1.5"/>
+                <defs>
+                    <linearGradient id="eg" x1="0" y1="0" x2="72" y2="36" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#00f0ff"/>
+                        <stop offset="1" stop-color="#bf5fff"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+        <h1>Aeye<span>Glasses </span></h1>
+    </div>
+
+    <!-- Tagline -->
+    <p class="tagline">
+        Real-time AI vision · Built by <em>Tushar</em> · Aspiring AI Engineer &amp; Python Developer
+    </p>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat">
+            <span class="stat-val">Real-Time</span>
+            <span class="stat-label">Processing</span>
+        </div>
+        <div class="stat">
+            <span class="stat-val">CV + MediaPipe</span>
+            <span class="stat-label">Powered</span>
+        </div>
+        <div class="stat">
+            <span class="stat-val">Python</span>
+            <span class="stat-label">Backend</span>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-wrap">
+        <button class="btn-start" onclick="start()">
+            <div class="btn-inner">
+                <div class="btn-icon">
+                    <svg viewBox="0 0 10 10"><polygon points="3,1 9,5 3,9"/></svg>
+                </div>
+                Launch Vision
+            </div>
+        </button>
+        <span class="btn-hint">// initialise camera feed</span>
+    </div>
+
+</div>
+
+<!-- Credits -->
+<div class="credits">
+    <div class="credit-item">AeyeGlasses</div>
+    <div class="credit-item"><strong>by</strong> Tushar</div>
+    <div class="credit-item">AI Engineer in the making</div>
+</div>
+
+<script>
+function start(){
+    window.location.href = "/video";
+}
+</script>
+
+</body>
+</html>
